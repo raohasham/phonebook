@@ -1,98 +1,124 @@
-import { useState ,useEffect } from 'react'
-import axios from 'axios'
+import { useState, useEffect } from 'react';
+import contactsServices from './services/contacts';
+import axios from 'axios';
+
+const ContactCard = ({ contact , deleteContact }) => {
 
 
-
-const ContactCard = ({contact})=>{
-  
-  return(
-<p>{contact.name} {contact.number}</p>
-  )
-
-}
-
-
-
+  return (
+    <p>{contact.name} {contact.number} <button onClick={deleteContact}>delete</button></p>
+  );
+};
 
 const App = () => {
-  const [persons, setPersons] = useState([]) 
-  
-  const [newName, setNewName] = useState('')
-  const [NewContact,setNewContact]  = useState('')
-  const[searchTerm, setSearchTerm]=useState('')
-  const [showAll,setShowAll]=useState(true)
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
+  const [newContact, setNewContact] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAll, setShowAll] = useState(true);
+  const [filteredPersons, setFilteredPersons] = useState([]);
 
-  useEffect(()=>{
-  axios
-  .get('http://localhost:3001/persons')
-  .then(res=>{
-  setPersons(res.data)})},[])
+ const deleteContactof=id=> {
+   contactsServices.getname(id).then(res=>{console.log(res);
+    
+    window.confirm(`delete ${res.name}  `)
+    
+   }
+   
+  )
   
 
-  const Contacts=(props)=>{
-    if(showAll)
-    return(
-    props.persons.map(o => <ContactCard key={o.name} contact={o}/>))
-    else {  
-     const filteredPersons = props.persons.filter(person =>
-      person.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      return(filteredPersons.map(o=><ContactCard key={o.id} contact={o} />))
+
+    
+    contactsServices
+    .deleteContact(id)
+    setPersons(persons.filter(cont=>cont.id!==id))
   }
-}
-  
-  
-  function handleSubmit(event) {
+
+  useEffect(() => {
+    contactsServices
+    .getAll()
+    .then(initiaContact=>{
+      setPersons(initiaContact);
+      setFilteredPersons(initiaContact);
+    }) 
+  }, []);
+
+  useEffect(() => {
+    if (showAll) {
+      setFilteredPersons(persons);
+    } else {
+      const filtered = persons.filter(person =>
+        person.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPersons(filtered);
+    }
+  }, [persons, searchTerm, showAll]);
+
+  const Contacts = () => {
+    return filteredPersons.map(o => <ContactCard key={o.id} contact={o} deleteContact={()=>deleteContactof(o.id)} />);
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
     const nameExists = persons.some(person => person.name === newName);
-    if(nameExists){
-
-      alert(`${newName} already exists`)
+    if (nameExists) {
+      alert(`${newName} already exists`);
+    } else {
+      const newobj = { name: newName , number: newContact };
+      contactsServices
+      .create(newobj)
+      .then(newcont => {
+          setPersons(persons.concat(newcont));
+          setNewName('');
+          setNewContact('');
+        })
+        .catch(error => {
+          console.error('Error adding contact:', error);
+        });
     }
+  };
 
-  else{  
-  
-      let newobj={ name: newName , number: NewContact }
-      setPersons(persons.concat(newobj))
-  }
-  }
-  function handleNameChange(e) {
-  
-    setNewName(e.target.value)
-    
-  }
-  function handleNumChange(e) {
-    setNewContact(e.target.value)
-    
-  }
-  function searchchange(e) {
-    setSearchTerm(e.target.value)
-    setShowAll(false)
-   const filteredPersons = persons.filter(person =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  filteredPersons.map(o=><ContactCard key={o.id} contact={o}/>)
-  }
-  
+  const handleNameChange = (e) => {
+    setNewName(e.target.value);
+  };
+
+  const handleNumChange = (e) => {
+    setNewContact(e.target.value);
+  };
+
+  const searchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setShowAll(false);
+  };
 
   return (
     <div>
-      <h1>search</h1>
-      search for <input onChange={searchchange} value={searchTerm}/> 
-
+      <h1>Search</h1>
+      <input
+        onChange={searchChange}
+        value={searchTerm}
+      />
       <h2>Phonebook</h2>
-      <form onSubmit={handleSubmit} >
+      <form onSubmit={handleSubmit}>
         <div>
-          name: <input onChange={handleNameChange} value={newName}   />
-          contact no :<input onChange={handleNumChange} value={NewContact}/>
+          name: <input
+            onChange={handleNameChange}
+            value={newName}
+          />
+          contact no: <input
+            onChange={handleNumChange}
+            value={newContact}
+          />
         </div>
         <div>
-          <button type="submit">add</button>
+          <button type="submit">Add</button>
         </div>
       </form>
       <h2>Numbers</h2>
-      <Contacts persons={persons} />
+      <Contacts />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
