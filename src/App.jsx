@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import contactsServices from './services/contacts';
-import axios from 'axios';
+
 
 const ContactCard = ({ contact , deleteContact }) => {
 
@@ -18,22 +19,15 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
   const [filteredPersons, setFilteredPersons] = useState([]);
 
- const deleteContactof=id=> {
-   contactsServices.getname(id).then(res=>{console.log(res);
-    
-    window.confirm(`delete ${res.name}  `)
-    
-   }
-   
-  )
-  
+ const deleteContactof= id=>{
+   window.confirm("delete this")
+
+contactsServices.deleteContact(id);
+  setPersons(persons.filter(cont=>cont.id!==id))
+  console.log(persons);
+} 
 
 
-    
-    contactsServices
-    .deleteContact(id)
-    setPersons(persons.filter(cont=>cont.id!==id))
-  }
 
   useEffect(() => {
     contactsServices
@@ -42,7 +36,7 @@ const App = () => {
       setPersons(initiaContact);
       setFilteredPersons(initiaContact);
     }) 
-  }, []);
+  }, [persons]);
 
   useEffect(() => {
     if (showAll) {
@@ -53,7 +47,7 @@ const App = () => {
       );
       setFilteredPersons(filtered);
     }
-  }, [persons, searchTerm, showAll]);
+  }, [persons,searchTerm, showAll]);
 
   const Contacts = () => {
     return filteredPersons.map(o => <ContactCard key={o.id} contact={o} deleteContact={()=>deleteContactof(o.id)} />);
@@ -63,7 +57,15 @@ const App = () => {
     event.preventDefault();
     const nameExists = persons.some(person => person.name === newName);
     if (nameExists) {
-      alert(`${newName} already exists`);
+      if(window.confirm(`${newName} already exist , press ok to replace the number with new number`)){
+         const updatedContact = { name:newName , number:newContact }
+         const persontobeupdated = persons.find(person=>person.name===newName)
+         console.log(persontobeupdated.id);
+         
+         contactsServices
+         .updateContact(persontobeupdated.id,updatedContact)
+         .then(res=>setPersons(persons.map(person=>person.id!==persontobeupdated.id? person :res.data)))
+      }
     } else {
       const newobj = { name: newName , number: newContact };
       contactsServices

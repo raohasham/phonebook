@@ -23,4 +23,10 @@ const getname =id=>{
     
 }
 
-export default{ getAll,create,deleteContact,getname}
+const updateContact = (id,updatedContact)=>{
+   const req = axios.put(`${baseurl}/${id}`, updatedContact)
+   return req.then(res=>res.data)
+
+}
+
+export default{ getAll,create,deleteContact,updateContact}
