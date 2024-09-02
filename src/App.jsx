@@ -24,7 +24,6 @@ const App = () => {
 
 contactsServices.deleteContact(id);
   setPersons(persons.filter(cont=>cont.id!==id))
-  console.log(persons);
 } 
 
 
@@ -36,7 +35,7 @@ contactsServices.deleteContact(id);
       setPersons(initiaContact);
       setFilteredPersons(initiaContact);
     }) 
-  }, [persons]);
+  }, []);
 
   useEffect(() => {
     if (showAll) {
@@ -47,26 +46,31 @@ contactsServices.deleteContact(id);
       );
       setFilteredPersons(filtered);
     }
-  }, [persons,searchTerm, showAll]);
+  }, [persons,searchTerm,showAll]);
 
   const Contacts = () => {
+    
     return filteredPersons.map(o => <ContactCard key={o.id} contact={o} deleteContact={()=>deleteContactof(o.id)} />);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const nameExists = persons.some(person => person.name === newName);
-    if (nameExists) {
+    if (nameExists) { 
       if(window.confirm(`${newName} already exist , press ok to replace the number with new number`)){
          const updatedContact = { name:newName , number:newContact }
-         const persontobeupdated = persons.find(person=>person.name===newName)
+         const persontobeupdated = persons.find(person=>person.name==newName)
+         console.log(persontobeupdated);
+         
          console.log(persontobeupdated.id);
          
          contactsServices
          .updateContact(persontobeupdated.id,updatedContact)
-         .then(res=>setPersons(persons.map(person=>person.id!==persontobeupdated.id? person :res.data)))
+         .then(res=>setPersons(persons.map(person=>person.id!==persontobeupdated.id? person :res)))
+         
+         
       }
-    } else {
+} else {
       const newobj = { name: newName , number: newContact };
       contactsServices
       .create(newobj)
@@ -91,7 +95,7 @@ contactsServices.deleteContact(id);
 
   const searchChange = (e) => {
     setSearchTerm(e.target.value);
-    setShowAll(false);
+    setShowAll(!showAll);
   };
 
   return (

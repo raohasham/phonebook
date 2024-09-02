@@ -18,7 +18,7 @@ const deleteContact = id=>{
 const getname =id=>{
     
    const req = axios.get(`${baseurl}/${id}`)
-  return (req.then(res=>res.data))
+  return req.then(res=>res.data)
     
     
 }
