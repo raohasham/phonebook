@@ -1,13 +1,26 @@
 
 import { useState, useEffect } from 'react';
 import contactsServices from './services/contacts';
+import './index.css'
+
+const Notification = ({message})=>{
+  if (message === null){
+    return null;
+  }
+  else{
+    return <div className='notify'>
+    {message}
+    <br />
+    </div>
+  }
+}
 
 
 const ContactCard = ({ contact , deleteContact }) => {
 
 
   return (
-    <p>{contact.name} {contact.number} <button onClick={deleteContact}>delete</button></p>
+    <p className='contacts'>{contact.name} {contact.number} <button onClick={deleteContact}>delete</button></p>
   );
 };
 
@@ -18,11 +31,25 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(true);
   const [filteredPersons, setFilteredPersons] = useState([]);
+  const [notificatinMessage,setNotificationMessage]=useState(null)
 
  const deleteContactof= id=>{
    window.confirm("delete this")
 
-contactsServices.deleteContact(id);
+contactsServices.deleteContact(id)
+.then(response => {
+  
+  setNotificationMessage(`${response.data.name} is deleted succesffully`)
+
+
+})
+.catch(error => {
+ const  personname = persons.find(pr=>pr.id==id)
+
+  setNotificationMessage(`${personname.name} has already been  deleted from the server`)
+})
+
+
   setPersons(persons.filter(cont=>cont.id!==id))
 } 
 
@@ -60,13 +87,15 @@ contactsServices.deleteContact(id);
       if(window.confirm(`${newName} already exist , press ok to replace the number with new number`)){
          const updatedContact = { name:newName , number:newContact }
          const persontobeupdated = persons.find(person=>person.name==newName)
-         console.log(persontobeupdated);
          
-         console.log(persontobeupdated.id);
          
          contactsServices
          .updateContact(persontobeupdated.id,updatedContact)
-         .then(res=>setPersons(persons.map(person=>person.id!==persontobeupdated.id? person :res)))
+         .then(res=>{setPersons(persons.map(person=>person.id!==persontobeupdated.id? person :res))
+            setNotificationMessage(`${persontobeupdated.name} contact is updated`)
+          setTimeout(() => {
+            setNotificationMessage(null)
+          }, 5000);})
          
          
       }
@@ -76,6 +105,10 @@ contactsServices.deleteContact(id);
       .create(newobj)
       .then(newcont => {
           setPersons(persons.concat(newcont));
+          setNotificationMessage(`${newcont.name} is added`)
+          setTimeout(() => {
+            setNotificationMessage(null)
+          },5000);
           setNewName('');
           setNewContact('');
         })
@@ -100,12 +133,15 @@ contactsServices.deleteContact(id);
 
   return (
     <div>
-      <h1>Search</h1>
+      <h2>Phonebook</h2>
+      <br />
+      <Notification message={notificatinMessage}/>
+      
+      <h2>Search bar</h2>
       <input
         onChange={searchChange}
         value={searchTerm}
       />
-      <h2>Phonebook</h2>
       <form onSubmit={handleSubmit}>
         <div>
           name: <input

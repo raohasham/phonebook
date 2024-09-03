@@ -12,16 +12,10 @@ const create = newcontact=>{
 }
 
 const deleteContact = id=>{
-    axios.delete(`${baseurl}/${id}`)
+   const req = axios.delete(`${baseurl}/${id}`)
+return req;
 }
- 
-const getname =id=>{
-    
-   const req = axios.get(`${baseurl}/${id}`)
-  return req.then(res=>res.data)
-    
-    
-}
+
 
 const updateContact = (id,updatedContact)=>{
    const req = axios.put(`${baseurl}/${id}`, updatedContact)
